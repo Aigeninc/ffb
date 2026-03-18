@@ -1,1 +1,49 @@
-import{createStore as e}from"./store.js";import{createRouter as t}from"./router.js";import{homeView as o}from"./views/home.js";import{rosterView as a}from"./views/roster.js";import{playbookView as r}from"./views/playbook.js";import{playLibraryView as s}from"./views/play-library.js";import{playViewerView as i}from"./views/play-viewer.js";import{playerShareView as h}from"./views/player-share.js";const l=e();window.__store=l;const m=t([{path:"/",view:o},{path:"/roster",view:a},{path:"/library",view:s},{path:"/playbooks",view:r},{path:"/play/:id",view:i},{path:"/share",view:h}],document.getElementById("app-root"));function p(){const e=document.getElementById("app-nav"),t=m.getCurrentPath(),o=[{hash:"#/",label:"🏈 Home",match:"/"},{hash:"#/roster",label:"👥 Roster",match:"/roster"},{hash:"#/library",label:"📚 Plays",match:"/library"},{hash:"#/playbooks",label:"📋 Playbooks",match:"/playbooks"}];e.innerHTML="";for(const{hash:a,label:r,match:s}of o){const o=document.createElement("a");o.href=a,o.textContent=r,t===s&&o.classList.add("active"),e.appendChild(o)}}window.addEventListener("hashchange",p),p(),m.start();
+import { createStore } from './store.js'
+import { createRouter } from './router.js'
+import { homeView } from './views/home.js'
+import { rosterView } from './views/roster.js'
+import { playbookView } from './views/playbook.js'
+import { playLibraryView } from './views/play-library.js'
+import { playViewerView } from './views/play-viewer.js'
+import { playerShareView } from './views/player-share.js'
+import { practiceView } from './views/practice.js'
+
+// Initialize store (global for view access)
+const store = createStore()
+window.__store = store
+
+// Setup router
+const router = createRouter([
+  { path: '/', view: homeView },
+  { path: '/roster', view: rosterView },
+  { path: '/library', view: playLibraryView },
+  { path: '/playbooks', view: playbookView },
+  { path: '/play/:id', view: playViewerView },
+  { path: '/share', view: playerShareView },
+  { path: '/practice', view: practiceView },
+], document.getElementById('app-root'))
+
+// Render navigation
+function renderNav() {
+  const nav = document.getElementById('app-nav')
+  const current = router.getCurrentPath()
+  const links = [
+    { hash: '#/', label: '🏈 Home', match: '/' },
+    { hash: '#/roster', label: '👥 Roster', match: '/roster' },
+    { hash: '#/library', label: '📚 Plays', match: '/library' },
+    { hash: '#/playbooks', label: '📋 Playbooks', match: '/playbooks' },
+    { hash: '#/practice', label: '🏃 Practice', match: '/practice' },
+  ]
+  nav.innerHTML = ''
+  for (const { hash, label, match } of links) {
+    const a = document.createElement('a')
+    a.href = hash
+    a.textContent = label
+    if (current === match) a.classList.add('active')
+    nav.appendChild(a)
+  }
+}
+
+window.addEventListener('hashchange', renderNav)
+renderNav()
+router.start()

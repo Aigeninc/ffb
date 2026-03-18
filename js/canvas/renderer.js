@@ -1,1 +1,399 @@
-const e={QB:"#3B82F6",C:"#8B5CF6",WR1:"#F77F00",WR2:"#FCBF49",RB:"#10B981"};export function fieldToCanvas(e,t,o,n){const i=n-40;return{x:20+e/35*(o-40),y:20+.65*i-t*(i/26)}}export function drawField(e,t,o){e.fillStyle="#2d5a27",e.fillRect(0,0,t,o);const n=20,i=o-40,l=n+.65*i,s=i/26;e.save(),e.strokeStyle="rgba(255,255,255,0.15)",e.lineWidth=1,e.setLineDash([]);for(let i=-10;i<=15;i+=5){if(0===i)continue;const a=l-i*s;a<10||a>o-n+10||(e.beginPath(),e.moveTo(n,a),e.lineTo(t-n,a),e.stroke())}e.restore(),e.save(),e.strokeStyle="rgba(255,255,255,0.85)",e.lineWidth=1.5,e.setLineDash([6,4]),e.beginPath(),e.moveTo(n,l),e.lineTo(t-n,l),e.stroke(),e.restore()}export function drawPlayer(e,t,o,n,i,l={}){const{mini:s=!1}=l,a=s?7:13;e.save(),e.beginPath(),e.arc(t,o,a,0,2*Math.PI),e.fillStyle=i,e.fill(),e.strokeStyle="#ffffff",e.lineWidth=s?1.5:2,e.stroke(),!s&&n&&(e.fillStyle="#ffffff",e.font="11px -apple-system, BlinkMacSystemFont, sans-serif",e.textAlign="center",e.textBaseline="top",e.fillText(n,t,o+a+3)),e.restore()}export function drawRoute(e,o,n,i={}){if(!o||o.length<2)return;const{dashed:l=!1,mini:s=!1,label:a=""}=i;e.save(),e.strokeStyle=n,e.lineWidth=s?1.5:2.5,e.lineCap="round",e.lineJoin="round",l?e.setLineDash([5,4]):e.setLineDash([]),e.beginPath(),e.moveTo(o[0].x,o[0].y);for(let t=1;t<o.length;t++)e.lineTo(o[t].x,o[t].y);if(e.stroke(),e.setLineDash([]),o.length>=2){const i=o[o.length-1],l=o[o.length-2];t(e,l.x,l.y,i.x,i.y,n,s?5:8)}if(!s&&a){const t=o[o.length-1];e.fillStyle=n,e.font="bold 9px -apple-system, BlinkMacSystemFont, sans-serif",e.textAlign="center",e.textBaseline="bottom",e.fillText(a,t.x,t.y-4)}e.restore()}export function drawDefense(e,t,o,n){if(t&&t.length){e.save(),e.strokeStyle="#888888",e.lineWidth=2,e.lineCap="round";for(const[i,l]of t){const{x:t,y:s}=fieldToCanvas(i,l,o,n),a=6;e.beginPath(),e.moveTo(t-a,s-a),e.lineTo(t+a,s+a),e.stroke(),e.beginPath(),e.moveTo(t+a,s-a),e.lineTo(t-a,s+a),e.stroke()}e.restore()}}export function drawReadBadge(e,t,o,n){if(!n||n<=0)return;e.save();const i=t+10,l=o-10;e.beginPath(),e.arc(i,l,8,0,2*Math.PI),e.fillStyle="#FFD700",e.fill(),e.strokeStyle="#000",e.lineWidth=1,e.stroke(),e.fillStyle="#000000",e.font="bold 9px -apple-system, BlinkMacSystemFont, sans-serif",e.textAlign="center",e.textBaseline="middle",e.fillText(String(n),i,l),e.restore()}export function drawMotionPath(e,o,n,i,l){e.save(),e.strokeStyle="rgba(200,200,200,0.7)",e.lineWidth=1.5,e.setLineDash([3,4]),e.beginPath(),e.moveTo(o.x,o.y),e.lineTo(n.x,n.y),e.stroke(),e.setLineDash([]),t(e,o.x,o.y,n.x,n.y,"rgba(200,200,200,0.7)",5),e.restore()}export function renderPlay(t,o,n={}){const{rosterMap:i={},showDefense:l=!0,showReadNumbers:s=!0,highlightPosition:a=null,mini:r=!1}=n,f=t.getContext("2d"),h=t.width,d=t.height;if(!h||!d)return;f.clearRect(0,0,h,d),drawField(f,h,d);const c=e=>a?e===a?1:.2:1;l&&o.defense&&drawDefense(f,o.defense,h,d);for(const[e,t]of Object.entries(o.positions||{})){if(!t.motion)continue;const o=c(e),n=fieldToCanvas(t.motion.from[0],t.motion.from[1],h,d),i=fieldToCanvas(t.motion.to[0],t.motion.to[1],h,d);f.globalAlpha=o,drawMotionPath(f,n,i,h,d),f.globalAlpha=1}for(const[t,n]of Object.entries(o.positions||{})){if(!n.route||0===n.route.length)continue;const o=e[t]||"#ffffff",i=c(t),l=[fieldToCanvas(n.pos[0],n.pos[1],h,d),...n.route.map(e=>fieldToCanvas(e[0],e[1],h,d))];f.globalAlpha=.85*i,drawRoute(f,l,o,{dashed:n.dashed||!1,mini:r,label:n.label||""}),f.globalAlpha=1}for(const[t,n]of Object.entries(o.positions||{})){const o=e[t]||"#ffffff",l=c(t),{x:a,y:g}=fieldToCanvas(n.pos[0],n.pos[1],h,d),p=i[t]||t;f.globalAlpha=l,drawPlayer(f,a,g,p,o,{mini:r}),f.globalAlpha=1,!r&&s&&n.read>0&&(f.globalAlpha=l,drawReadBadge(f,a,g,n.read),f.globalAlpha=1)}}function t(e,t,o,n,i,l,s=8){const a=Math.atan2(i-o,n-t);e.save(),e.fillStyle=l,e.strokeStyle=l,e.setLineDash([]),e.beginPath(),e.moveTo(n,i),e.lineTo(n-s*Math.cos(a-Math.PI/6),i-s*Math.sin(a-Math.PI/6)),e.lineTo(n-s*Math.cos(a+Math.PI/6),i-s*Math.sin(a+Math.PI/6)),e.closePath(),e.fill(),e.restore()}
+/**
+ * Static Canvas Renderer — Phase 3
+ *
+ * Coordinate system:
+ *   X: 0–35 (left sideline to right sideline), center = 17.5
+ *   Y: negative = behind LOS, positive = downfield
+ *   LOS at Y=0, rendered at 40% from top of canvas
+ */
+
+// ── Position Colors ───────────────────────────────────────────────────────────
+const POSITION_COLORS = {
+  QB:  '#3B82F6',
+  C:   '#8B5CF6',
+  WR1: '#F77F00',
+  WR2: '#FCBF49',
+  RB:  '#10B981',
+}
+
+// ── Coordinate Conversion ─────────────────────────────────────────────────────
+
+/**
+ * Convert field coordinates to canvas pixel coordinates.
+ * @param {number} fieldX - 0–35
+ * @param {number} fieldY - negative = behind LOS, positive = downfield
+ * @param {number} canvasWidth
+ * @param {number} canvasHeight
+ * @returns {{ x: number, y: number }}
+ */
+// FIELD_TOTAL_YARDS controls zoom level. Lower = more zoomed in.
+// 26 ≈ 17 yards downfield + 9 yards backfield at LOS=65% (Keith: cap plays at 15 yards)
+const FIELD_TOTAL_YARDS = 26
+
+export function fieldToCanvas(fieldX, fieldY, canvasWidth, canvasHeight) {
+  const padding = 20
+  const usableWidth = canvasWidth - padding * 2
+  const usableHeight = canvasHeight - padding * 2
+  const x = padding + (fieldX / 35) * usableWidth
+  const losY = padding + usableHeight * 0.65  // downfield goes UP, so LOS must be LOW on canvas
+  const scale = usableHeight / FIELD_TOTAL_YARDS
+  const y = losY - fieldY * scale
+  return { x, y }
+}
+
+// ── Individual Draw Functions ─────────────────────────────────────────────────
+
+/**
+ * Draw the football field background: green, yard lines, LOS.
+ */
+export function drawField(ctx, w, h) {
+  // Background
+  ctx.fillStyle = '#2d5a27'
+  ctx.fillRect(0, 0, w, h)
+
+  const padding = 20
+  const usableWidth = w - padding * 2
+  const usableHeight = h - padding * 2
+  const losY = padding + usableHeight * 0.65  // matches fieldToCanvas
+  const scale = usableHeight / FIELD_TOTAL_YARDS  // matches fieldToCanvas
+
+  // Yard lines every 5 yards (Y = 5, 10, 15 downfield; -5 behind)
+  ctx.save()
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'
+  ctx.lineWidth = 1
+  ctx.setLineDash([])
+  for (let yd = -10; yd <= 15; yd += 5) {
+    if (yd === 0) continue
+    const lineY = losY - yd * scale
+    if (lineY < padding - 10 || lineY > h - padding + 10) continue
+    ctx.beginPath()
+    ctx.moveTo(padding, lineY)
+    ctx.lineTo(w - padding, lineY)
+    ctx.stroke()
+  }
+  ctx.restore()
+
+  // Line of Scrimmage — white dashed
+  ctx.save()
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)'
+  ctx.lineWidth = 1.5
+  ctx.setLineDash([6, 4])
+  ctx.beginPath()
+  ctx.moveTo(padding, losY)
+  ctx.lineTo(w - padding, losY)
+  ctx.stroke()
+  ctx.restore()
+}
+
+/**
+ * Draw a player dot with optional label.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x - canvas x
+ * @param {number} y - canvas y
+ * @param {string} label - text shown below dot
+ * @param {string} color - hex color
+ * @param {{ mini?: boolean, radius?: number }} options
+ */
+export function drawPlayer(ctx, x, y, label, color, options = {}) {
+  const { mini = false } = options
+  const radius = mini ? 7 : 13
+
+  ctx.save()
+
+  // Fill
+  ctx.beginPath()
+  ctx.arc(x, y, radius, 0, Math.PI * 2)
+  ctx.fillStyle = color
+  ctx.fill()
+
+  // White stroke
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = mini ? 1.5 : 2
+  ctx.stroke()
+
+  // Label (skip in mini mode)
+  if (!mini && label) {
+    ctx.fillStyle = '#ffffff'
+    ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'top'
+    ctx.fillText(label, x, y + radius + 3)
+  }
+
+  ctx.restore()
+}
+
+/**
+ * Draw a route line through an array of canvas-coordinate points.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {{ x: number, y: number }[]} points - start point + waypoints
+ * @param {string} color - hex color
+ * @param {{ dashed?: boolean, mini?: boolean, label?: string }} options
+ */
+export function drawRoute(ctx, points, color, options = {}) {
+  if (!points || points.length < 2) return
+  const { dashed = false, mini = false, label = '' } = options
+
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = mini ? 1.5 : 2.5
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  if (dashed) {
+    ctx.setLineDash([5, 4])
+  } else {
+    ctx.setLineDash([])
+  }
+
+  // Draw line
+  ctx.beginPath()
+  ctx.moveTo(points[0].x, points[0].y)
+  for (let i = 1; i < points.length; i++) {
+    ctx.lineTo(points[i].x, points[i].y)
+  }
+  ctx.stroke()
+  ctx.setLineDash([])
+
+  // Arrow at final point
+  if (points.length >= 2) {
+    const last = points[points.length - 1]
+    const prev = points[points.length - 2]
+    _drawArrow(ctx, prev.x, prev.y, last.x, last.y, color, mini ? 5 : 8)
+  }
+
+  // Route label near endpoint (skip in mini mode)
+  if (!mini && label) {
+    const end = points[points.length - 1]
+    ctx.fillStyle = color
+    ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'bottom'
+    ctx.fillText(label, end.x, end.y - 4)
+  }
+
+  ctx.restore()
+}
+
+/**
+ * Draw defense markers (X shapes) at field coordinate positions.
+ */
+export function drawDefense(ctx, positions, w, h) {
+  if (!positions || !positions.length) return
+  ctx.save()
+  ctx.strokeStyle = '#888888'
+  ctx.lineWidth = 2
+  ctx.lineCap = 'round'
+
+  for (const [fx, fy] of positions) {
+    const { x, y } = fieldToCanvas(fx, fy, w, h)
+    const s = 6
+    ctx.beginPath()
+    ctx.moveTo(x - s, y - s)
+    ctx.lineTo(x + s, y + s)
+    ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(x + s, y - s)
+    ctx.lineTo(x - s, y + s)
+    ctx.stroke()
+  }
+
+  ctx.restore()
+}
+
+/**
+ * Draw a read-order badge (yellow circle with number).
+ */
+export function drawReadBadge(ctx, x, y, num) {
+  if (!num || num <= 0) return
+  const r = 8
+
+  ctx.save()
+
+  // Badge background (yellow)
+  const bx = x + 10
+  const by = y - 10
+  ctx.beginPath()
+  ctx.arc(bx, by, r, 0, Math.PI * 2)
+  ctx.fillStyle = '#FFD700'
+  ctx.fill()
+  ctx.strokeStyle = '#000'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  // Number
+  ctx.fillStyle = '#000000'
+  ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(String(num), bx, by)
+
+  ctx.restore()
+}
+
+/**
+ * Draw a pre-snap motion path (dotted gray line).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {{ x: number, y: number }} from - canvas coords
+ * @param {{ x: number, y: number }} to   - canvas coords
+ */
+export function drawMotionPath(ctx, from, to, _w, _h) {
+  ctx.save()
+  ctx.strokeStyle = 'rgba(200,200,200,0.7)'
+  ctx.lineWidth = 1.5
+  ctx.setLineDash([3, 4])
+
+  ctx.beginPath()
+  ctx.moveTo(from.x, from.y)
+  ctx.lineTo(to.x, to.y)
+  ctx.stroke()
+
+  // Small arrow at destination
+  ctx.setLineDash([])
+  _drawArrow(ctx, from.x, from.y, to.x, to.y, 'rgba(200,200,200,0.7)', 5)
+
+  ctx.restore()
+}
+
+// ── Main Render Function ──────────────────────────────────────────────────────
+
+/**
+ * Render a complete play onto a canvas element.
+ *
+ * @param {HTMLCanvasElement} canvas
+ * @param {Object} play - play object from PLAY_LIBRARY
+ * @param {Object} options
+ * @param {Object}  [options.rosterMap]         - { QB: 'Braelyn', ... }
+ * @param {boolean} [options.showDefense=true]
+ * @param {boolean} [options.showReadNumbers=true]
+ * @param {boolean} [options.showAllRoutes=true]
+ * @param {string|null} [options.highlightPosition=null]
+ * @param {boolean} [options.mini=false]
+ */
+export function renderPlay(canvas, play, options = {}) {
+  const {
+    rosterMap = {},
+    showDefense = true,
+    showReadNumbers = true,
+    highlightPosition = null,
+    mini = false,
+  } = options
+
+  const ctx = canvas.getContext('2d')
+  const w = canvas.width
+  const h = canvas.height
+
+  if (!w || !h) return
+
+  // Clear
+  ctx.clearRect(0, 0, w, h)
+
+  // Field
+  drawField(ctx, w, h)
+
+  // Helper: opacity based on highlight mode
+  const opacityFor = (pos) => {
+    if (!highlightPosition) return 1
+    return pos === highlightPosition ? 1 : 0.2
+  }
+
+  // Defense
+  if (showDefense && play.defense) {
+    drawDefense(ctx, play.defense, w, h)
+  }
+
+  // Motion paths (drawn behind routes)
+  for (const [pos, data] of Object.entries(play.positions || {})) {
+    if (!data.motion) continue
+    const opacity = opacityFor(pos)
+    const from = fieldToCanvas(data.motion.from[0], data.motion.from[1], w, h)
+    const to   = fieldToCanvas(data.motion.to[0],   data.motion.to[1],   w, h)
+    ctx.globalAlpha = opacity
+    drawMotionPath(ctx, from, to, w, h)
+    ctx.globalAlpha = 1
+  }
+
+  // Routes
+  for (const [pos, data] of Object.entries(play.positions || {})) {
+    if (!data.route || data.route.length === 0) continue
+    const color = POSITION_COLORS[pos] || '#ffffff'
+    const opacity = opacityFor(pos)
+
+    // Build canvas point array: start pos + route waypoints
+    const startPt = fieldToCanvas(data.pos[0], data.pos[1], w, h)
+    const routePts = data.route.map(pt => fieldToCanvas(pt[0], pt[1], w, h))
+    const points = [startPt, ...routePts]
+
+    ctx.globalAlpha = opacity * 0.85
+    drawRoute(ctx, points, color, {
+      dashed: data.dashed || false,
+      mini,
+      label: data.label || '',
+    })
+    ctx.globalAlpha = 1
+  }
+
+  // Player dots
+  for (const [pos, data] of Object.entries(play.positions || {})) {
+    const color = POSITION_COLORS[pos] || '#ffffff'
+    const opacity = opacityFor(pos)
+    const { x, y } = fieldToCanvas(data.pos[0], data.pos[1], w, h)
+    const label = rosterMap[pos] || pos
+
+    // Glow ring for highlighted position
+    const isHighlighted = !mini && highlightPosition && pos === highlightPosition
+    if (isHighlighted) {
+      ctx.save()
+      const glowRadius = 22
+      const gradient = ctx.createRadialGradient(x, y, 10, x, y, glowRadius)
+      gradient.addColorStop(0, color + '50')
+      gradient.addColorStop(1, color + '00')
+      ctx.beginPath()
+      ctx.arc(x, y, glowRadius, 0, Math.PI * 2)
+      ctx.fillStyle = gradient
+      ctx.fill()
+      // Pulsing outer ring
+      ctx.beginPath()
+      ctx.arc(x, y, 17, 0, Math.PI * 2)
+      ctx.strokeStyle = color
+      ctx.lineWidth = 2
+      ctx.globalAlpha = 0.65
+      ctx.stroke()
+      ctx.restore()
+    }
+
+    ctx.globalAlpha = opacity
+    drawPlayer(ctx, x, y, label, color, { mini })
+    ctx.globalAlpha = 1
+
+    // Read badge (only non-mini, only if read > 0)
+    if (!mini && showReadNumbers && data.read > 0) {
+      ctx.globalAlpha = opacity
+      drawReadBadge(ctx, x, y, data.read)
+      ctx.globalAlpha = 1
+    }
+  }
+}
+
+// ── Private Helpers ───────────────────────────────────────────────────────────
+
+function _drawArrow(ctx, fromX, fromY, toX, toY, color, size = 8) {
+  const angle = Math.atan2(toY - fromY, toX - fromX)
+  ctx.save()
+  ctx.fillStyle = color
+  ctx.strokeStyle = color
+  ctx.setLineDash([])
+  ctx.beginPath()
+  ctx.moveTo(toX, toY)
+  ctx.lineTo(
+    toX - size * Math.cos(angle - Math.PI / 6),
+    toY - size * Math.sin(angle - Math.PI / 6)
+  )
+  ctx.lineTo(
+    toX - size * Math.cos(angle + Math.PI / 6),
+    toY - size * Math.sin(angle + Math.PI / 6)
+  )
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+}

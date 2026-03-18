@@ -1,1 +1,570 @@
-import{el as e,clear as t,showToast as a}from"../utils/dom.js";import{PLAY_LIBRARY as n,filterPlays as o,getFormations as s,getTags as l,getFamilies as i}from"../play-library.js";import{renderPlay as d}from"../canvas/renderer.js";export function playbookView(c,p){const r=window.__store;let y="view",m=r.get().activePlaybookId||null,b={search:"",formation:"",tag:"",family:""};if(0===r.getPlaybooks().length&&(y="list"),null===m){const e=r.getPlaybooks();e.length>0&&(m=r.get().activePlaybookId||e[0].id)}function f(){t(p);const c=r.getRosterMap(),x=r.getPlaybooks();m&&!x.some(e=>e.id===m)&&(m=x.length>0?x[0].id:null),0===x.length||"list"===y?function(){const t=r.getPlaybooks(),a=r.get().activePlaybookId,n=e("div",{className:"playbook-view"});n.appendChild(e("div",{className:"playbook-list-header"},[e("h1",{textContent:"📋 Playbooks"}),e("button",{className:"btn btn-primary btn-sm",textContent:"+ New Playbook",onclick:h})]));const o=e("div",{className:"playbook-grid"});if(0===t.length)o.appendChild(e("div",{className:"playbook-empty"},[e("p",{textContent:"No playbooks yet. Create one to organize your plays for game day."})]));else for(const n of t){const t=n.id===a,s=`${n.plays.length} play${1!==n.plays.length?"s":""}`;o.appendChild(e("div",{className:"playbook-card "+(t?"playbook-card-active":""),onclick:()=>{m=n.id,y="view",f()},style:{cursor:"pointer"}},[e("div",{className:"playbook-card-header"},[e("h3",{textContent:n.name}),e("span",{className:"playbook-card-count",textContent:s})]),t?e("span",{className:"playbook-active-badge",textContent:"★ Active"}):null].filter(Boolean)))}n.appendChild(o),p.appendChild(n)}():"manage"===y?function(l){const i=r.getPlaybooks(),c=i.find(e=>e.id===m);if(!c)return y="list",void f();const h=r.get().activePlaybookId,C=c.id===h,x=e("div",{className:"playbook-view"}),w=e("input",{className:"input playbook-name-input",type:"text",value:c.name});w.addEventListener("blur",()=>function(e){if(!e.trim())return;const t=r.getPlaybooks(),a=t.findIndex(e=>e.id===m);if(-1===a)return;t[a].name=e.trim(),r.set({playbooks:t})}(w.value)),w.addEventListener("keydown",e=>{"Enter"===e.key&&w.blur()});const I=C?e("span",{className:"playbook-active-badge",textContent:"★ Active"}):e("button",{className:"btn btn-ghost btn-sm",textContent:"Set Active",onclick:()=>{r.set({activePlaybookId:c.id}),a(`"${c.name}" set as active`),f()}});x.appendChild(e("div",{className:"playbook-editor-header"},[e("button",{className:"btn btn-ghost btn-sm",textContent:"← Done",onclick:()=>{y="view",f()}}),w,I]));const P=[...c.plays].sort((e,t)=>e.order-t.order),$=e("div",{className:"playbook-plays-list"});if(0===P.length)$.appendChild(e("div",{className:"playbook-empty-plays"},[e("p",{textContent:"No plays added yet. Use the picker below to add plays."})]));else for(const t of P){const a=n.find(e=>e.id===t.playId);if(!a){$.appendChild(e("div",{className:"playbook-play-item"},[e("div",{className:"playbook-play-info"},[e("div",{className:"playbook-play-real-name",textContent:`⚠️ Not found: ${t.playId}`})]),e("div",{className:"playbook-play-actions"},[e("button",{className:"btn btn-danger btn-sm",textContent:"✕",onclick:()=>k(t.playId)})])]));continue}const o=e("input",{className:"input input-sm codename-input",type:"text",value:t.codeName,placeholder:"Code name..."});o.addEventListener("blur",()=>u(t.playId,o.value)),o.addEventListener("keydown",e=>{"Enter"===e.key&&o.blur()});const s=e("canvas",{}),l=e("div",{className:"playbook-play-thumb"},[s]);$.appendChild(e("div",{className:"playbook-play-item",dataset:{playId:t.playId,order:String(t.order)}},[l,e("div",{className:"playbook-play-info"},[o,e("div",{className:"playbook-play-real-name",textContent:a.name})]),e("div",{className:"playbook-play-actions"},[e("button",{className:"btn btn-ghost btn-sm",textContent:"▲",onclick:()=>v(t.playId,-1)}),e("button",{className:"btn btn-ghost btn-sm",textContent:"▼",onclick:()=>v(t.playId,1)}),e("button",{className:"btn btn-danger btn-sm",textContent:"✕",onclick:()=>k(t.playId)})])]))}x.appendChild($);const A=e("div",{className:"playbook-play-picker"});A.appendChild(e("h3",{textContent:"Add Plays",style:{margin:"16px 0 8px",color:"#e94560"}}));const E=e("input",{type:"text",className:"input filter-search",placeholder:"🔍 Search plays…",value:b.search});E.addEventListener("input",()=>{b.search=E.value,D()});const L=N("Formation",s(),e=>{b.formation=e,D()});L.value=b.formation,A.appendChild(e("div",{className:"filter-bar"},[E,L]));const S=e("div",{className:"play-picker-grid"});function D(){t(S);const a=r.getPlaybooks().find(e=>e.id===m),n=new Set(a?a.plays.map(e=>e.playId):[]),s=o(b);for(const t of s){const a=n.has(t.id),o=e("canvas",{}),s=e("button",{className:a?"btn btn-sm btn-added":"btn btn-primary btn-sm",textContent:a?"✓ Added":"+ Add",onclick:()=>{a||g(t.id)}});a&&(s.disabled=!0),S.appendChild(e("div",{className:"play-picker-card",dataset:{playId:t.id}},[o,e("div",{className:"play-picker-card-info"},[e("span",{textContent:t.name}),s])]))}requestAnimationFrame(()=>{for(const e of s){const t=S.querySelector(`.play-picker-card[data-play-id="${e.id}"] canvas`);t&&(t.width=t.offsetWidth||160,t.height=t.offsetHeight||120,d(t,e,{rosterMap:l,showDefense:!0,showReadNumbers:!1,mini:!0}))}})}A.appendChild(S),D(),x.appendChild(A),x.appendChild(e("div",{style:{marginTop:"24px",textAlign:"center"}},[e("button",{className:"btn btn-danger btn-sm",textContent:"🗑 Delete Playbook",onclick:()=>function(e){if(!confirm(`Delete "${e.name}"?`))return;const t=r.getPlaybooks().filter(t=>t.id!==e.id);r.set({playbooks:t}),r.get().activePlaybookId===e.id&&r.set({activePlaybookId:null});m===e.id&&(m=null);y=t.length>0?"view":"list",f(),a(`"${e.name}" deleted`)}(c)})])),p.appendChild(x),requestAnimationFrame(()=>{for(const e of P){const t=n.find(t=>t.id===e.playId);if(!t)continue;const a=p.querySelector(`.playbook-play-item[data-play-id="${e.playId}"] canvas`);a&&(a.width=a.offsetWidth||120,a.height=a.offsetHeight||90,d(a,t,{rosterMap:l,showDefense:!0,showReadNumbers:!1,mini:!0}))}})}(c):function(a){const n=r.getPlaybooks(),c=n.find(e=>e.id===m);if(!c)return y="list",void f();const u=e("div",{className:"playbook-view"}),v=e("select",{className:"input playbook-select"});for(const t of n)v.appendChild(e("option",{value:t.id,textContent:t.name}));v.value=m,v.addEventListener("change",()=>{m=v.value,f()});const g=e("div",{className:"playbook-filter-header"},[v,e("div",{className:"playbook-header-actions"},[e("button",{className:"btn btn-ghost btn-sm",textContent:"⚙ Manage",onclick:()=>{y="manage",f()}}),e("button",{className:"btn btn-primary btn-sm",textContent:"+ New",onclick:h})])]);u.appendChild(g);const k=[...c.plays].sort((e,t)=>e.order-t.order),x=new Set(k.map(e=>e.playId)),w={};for(const e of k)e.codeName&&(w[e.playId]=e.codeName);const I=e("input",{type:"text",className:"input filter-search",placeholder:"🔍 Search plays…",value:b.search});I.addEventListener("input",()=>{b.search=I.value,q()});const P=N("Formation",s(),e=>{b.formation=e,q()});P.value=b.formation;const $=N("Tag",l(),e=>{b.tag=e,q()});$.value=b.tag;const A=N("Family",i(),e=>{b.family=e,q()});A.value=b.family;const E=e("button",{className:"btn btn-ghost filter-clear hidden",textContent:"✕ Clear",onclick:()=>{b={search:"",formation:"",tag:"",family:""},I.value="",P.value="",$.value="",A.value="",E.classList.add("hidden"),q()}}),L=e("span",{className:"library-count",textContent:`${k.length} plays in "${c.name}"`});u.appendChild(e("div",{className:"library-header",style:{marginTop:"8px"}},[L])),u.appendChild(e("div",{className:"filter-bar"},[I,P,$,A,E]));const S=e("div",{className:"play-grid"});function D(){let e=o(b).filter(e=>x.has(e.id));const t={};for(const e of k)t[e.playId]=e.order;return e.sort((e,a)=>(t[e.id]||0)-(t[a.id]||0)),e}function q(){const n=b.search||b.formation||b.tag||b.family;E.classList.toggle("hidden",!n),t(S);const o=D();if(L.textContent=n?`Showing ${o.length} of ${k.length} plays in "${c.name}"`:`${k.length} plays in "${c.name}"`,0===o.length&&0===k.length)S.appendChild(e("div",{style:{color:"#888",gridColumn:"1 / -1",padding:"24px 0",textAlign:"center"}},[e("p",{textContent:"No plays in this playbook yet."}),e("button",{className:"btn btn-primary",style:{marginTop:"12px"},textContent:"⚙ Manage Plays",onclick:()=>{y="manage",f()}})]));else if(0===o.length)S.appendChild(e("p",{style:{color:"#888",gridColumn:"1 / -1",padding:"24px 0"},textContent:"No plays match your filters."}));else for(const e of o)S.appendChild(C(e,a,w[e.id]));requestAnimationFrame(()=>{for(const e of o){const t=S.querySelector(`[data-play-id="${e.id}"] canvas`);t&&t.offsetWidth>0&&(t.width=t.offsetWidth,t.height=t.offsetHeight,d(t,e,{rosterMap:a,showDefense:!0,showReadNumbers:!1,mini:!0}))}})}function M(){requestAnimationFrame(()=>{const e=D();for(const t of e){const e=S.querySelector(`[data-play-id="${t.id}"] canvas`);e&&e.offsetWidth>0&&(e.width=e.offsetWidth,e.height=e.offsetHeight,d(e,t,{rosterMap:a,showDefense:!0,showReadNumbers:!1,mini:!0}))}})}q(),u.appendChild(S),p.appendChild(u),window.addEventListener("resize",M)}(c)}function h(){const e=prompt("Playbook name:");if(!e||!e.trim())return;const t=r.getPlaybooks(),n={id:"pb_"+Date.now(),name:e.trim(),plays:[],createdAt:Date.now()};t.push(n),r.set({playbooks:t}),1===t.length&&r.set({activePlaybookId:n.id}),m=n.id,y="manage",f(),a(`"${n.name}" created — add some plays!`)}function u(e,t){const a=r.getPlaybooks(),n=a.find(e=>e.id===m);if(!n)return;const o=n.plays.find(t=>t.playId===e);o&&(o.codeName=t.trim(),r.set({playbooks:a}))}function v(e,t){const a=r.getPlaybooks(),n=a.find(e=>e.id===m);if(!n)return;n.plays.sort((e,t)=>e.order-t.order);const o=n.plays.findIndex(t=>t.playId===e),s=o+t;if(s<0||s>=n.plays.length)return;const l=n.plays[o].order;n.plays[o].order=n.plays[s].order,n.plays[s].order=l,r.set({playbooks:a}),f()}function g(e){const t=r.getPlaybooks(),n=t.find(e=>e.id===m);if(!n)return;if(n.plays.some(t=>t.playId===e))return void a("Already in playbook");const o=n.plays.length>0?Math.max(...n.plays.map(e=>e.order))+1:0;n.plays.push({playId:e,codeName:"",order:o}),r.set({playbooks:t}),f(),a("Play added")}function k(e){const t=r.getPlaybooks(),a=t.find(e=>e.id===m);a&&(a.plays=a.plays.filter(t=>t.playId!==e),a.plays.sort((e,t)=>e.order-t.order),a.plays.forEach((e,t)=>e.order=t),r.set({playbooks:t}),f())}function N(t,a,n){const o=e("select",{className:"input filter-select"});o.appendChild(e("option",{value:"",textContent:`${t} ▾`}));for(const t of a)o.appendChild(e("option",{value:t,textContent:t.charAt(0).toUpperCase()+t.slice(1)}));return o.addEventListener("change",()=>n(o.value)),o}function C(t,a,n){const o=e("canvas",{});o.width=200,o.height=150;const s=t.tags.slice(0,3).map(t=>e("span",{className:"tag-badge",textContent:t})),l=t.isRunPlay?"🏃":"🎯",i=n?`${n}`:t.name,d=e("div",{className:"play-card-info"},[e("div",{className:"play-card-name",textContent:`${l} ${i}`}),e("div",n?{className:"play-card-meta",textContent:`${t.name} · ${t.formation}`}:{className:"play-card-meta",textContent:t.formation}),e("div",{className:"play-card-tags",style:{marginTop:"6px"}},s)]);return e("div",{className:"play-card",dataset:{playId:t.id},onclick:()=>{window.location.hash=`#/play/${t.id}`}},[o,d])}const x=r.subscribe(()=>f());return f(),()=>x()}
+import { el, clear, showToast } from '../utils/dom.js'
+import { PLAY_LIBRARY, filterPlays, getFormations, getTags, getFamilies } from '../play-library.js'
+import { renderPlay } from '../canvas/renderer.js'
+
+export function playbookView(params, outlet) {
+  const store = window.__store
+  let mode = 'view'          // 'view' | 'manage' | 'list'
+  let selectedPlaybookId = store.get().activePlaybookId || null
+  let searchFilters = { search: '', formation: '', tag: '', family: '' }
+
+  // If no playbooks exist, start in list mode
+  if (store.getPlaybooks().length === 0) mode = 'list'
+
+  // If we have playbooks but none selected, pick the active or first
+  if (selectedPlaybookId === null) {
+    const pbs = store.getPlaybooks()
+    if (pbs.length > 0) {
+      selectedPlaybookId = store.get().activePlaybookId || pbs[0].id
+    }
+  }
+
+  // ─── Main render ──────────────────────────────────────────────────────────
+  function render() {
+    clear(outlet)
+    const rosterMap = store.getRosterMap()
+    const playbooks = store.getPlaybooks()
+
+    // Validate selected playbook still exists
+    if (selectedPlaybookId && !playbooks.some(p => p.id === selectedPlaybookId)) {
+      selectedPlaybookId = playbooks.length > 0 ? playbooks[0].id : null
+    }
+
+    if (playbooks.length === 0 || mode === 'list') {
+      renderPlaybookList(rosterMap)
+    } else if (mode === 'manage') {
+      renderManageMode(rosterMap)
+    } else {
+      renderFilteredLibrary(rosterMap)
+    }
+  }
+
+  // ─── VIEW MODE: Filtered library showing only plays in this playbook ──────
+  function renderFilteredLibrary(rosterMap) {
+    const playbooks = store.getPlaybooks()
+    const pb = playbooks.find(p => p.id === selectedPlaybookId)
+    if (!pb) { mode = 'list'; render(); return }
+
+    const view = el('div', { className: 'playbook-view' })
+
+    // ── Playbook selector + actions bar
+    const pbSelect = el('select', { className: 'input playbook-select' })
+    for (const p of playbooks) {
+      pbSelect.appendChild(el('option', { value: p.id, textContent: p.name }))
+    }
+    pbSelect.value = selectedPlaybookId
+    pbSelect.addEventListener('change', () => {
+      selectedPlaybookId = pbSelect.value
+      render()
+    })
+
+    const header = el('div', { className: 'playbook-filter-header' }, [
+      pbSelect,
+      el('div', { className: 'playbook-header-actions' }, [
+        el('button', {
+          className: 'btn btn-ghost btn-sm',
+          textContent: '⚙ Manage',
+          onclick: () => { mode = 'manage'; render() },
+        }),
+        el('button', {
+          className: 'btn btn-primary btn-sm',
+          textContent: '+ New',
+          onclick: createPlaybook,
+        }),
+      ]),
+    ])
+    view.appendChild(header)
+
+    // ── Get plays in this playbook, sorted by order
+    const sortedEntries = [...pb.plays].sort((a, b) => a.order - b.order)
+    const playIds = new Set(sortedEntries.map(e => e.playId))
+    const codeNames = {}
+    for (const e of sortedEntries) {
+      if (e.codeName) codeNames[e.playId] = e.codeName
+    }
+
+    // ── Filter bar (same as play library)
+    const searchInput = el('input', {
+      type: 'text',
+      className: 'input filter-search',
+      placeholder: '🔍 Search plays…',
+      value: searchFilters.search,
+    })
+    searchInput.addEventListener('input', () => {
+      searchFilters.search = searchInput.value
+      refreshGrid()
+    })
+
+    const formationSelect = buildSelect('Formation', getFormations(), v => {
+      searchFilters.formation = v; refreshGrid()
+    })
+    formationSelect.value = searchFilters.formation
+
+    const tagSelect = buildSelect('Tag', getTags(), v => {
+      searchFilters.tag = v; refreshGrid()
+    })
+    tagSelect.value = searchFilters.tag
+
+    const familySelect = buildSelect('Family', getFamilies(), v => {
+      searchFilters.family = v; refreshGrid()
+    })
+    familySelect.value = searchFilters.family
+
+    const clearBtn = el('button', {
+      className: 'btn btn-ghost filter-clear hidden',
+      textContent: '✕ Clear',
+      onclick: () => {
+        searchFilters = { search: '', formation: '', tag: '', family: '' }
+        searchInput.value = ''
+        formationSelect.value = ''
+        tagSelect.value = ''
+        familySelect.value = ''
+        clearBtn.classList.add('hidden')
+        refreshGrid()
+      },
+    })
+
+    const countEl = el('span', {
+      className: 'library-count',
+      textContent: `${sortedEntries.length} plays in "${pb.name}"`,
+    })
+
+    view.appendChild(el('div', { className: 'library-header', style: { marginTop: '8px' } }, [countEl]))
+    view.appendChild(el('div', { className: 'filter-bar' }, [
+      searchInput, formationSelect, tagSelect, familySelect, clearBtn,
+    ]))
+
+    // ── Play grid (same card style as library, but filtered to playbook)
+    const grid = el('div', { className: 'play-grid' })
+
+    function getFilteredPlays() {
+      let plays = filterPlays(searchFilters).filter(p => playIds.has(p.id))
+      // Sort by playbook order
+      const orderMap = {}
+      for (const e of sortedEntries) orderMap[e.playId] = e.order
+      plays.sort((a, b) => (orderMap[a.id] || 0) - (orderMap[b.id] || 0))
+      return plays
+    }
+
+    function refreshGrid() {
+      const hasFilter = searchFilters.search || searchFilters.formation || searchFilters.tag || searchFilters.family
+      clearBtn.classList.toggle('hidden', !hasFilter)
+
+      clear(grid)
+      const plays = getFilteredPlays()
+      countEl.textContent = hasFilter
+        ? `Showing ${plays.length} of ${sortedEntries.length} plays in "${pb.name}"`
+        : `${sortedEntries.length} plays in "${pb.name}"`
+
+      if (plays.length === 0 && sortedEntries.length === 0) {
+        grid.appendChild(el('div', {
+          style: { color: '#888', gridColumn: '1 / -1', padding: '24px 0', textAlign: 'center' },
+        }, [
+          el('p', { textContent: 'No plays in this playbook yet.' }),
+          el('button', {
+            className: 'btn btn-primary',
+            style: { marginTop: '12px' },
+            textContent: '⚙ Manage Plays',
+            onclick: () => { mode = 'manage'; render() },
+          }),
+        ]))
+      } else if (plays.length === 0) {
+        grid.appendChild(el('p', {
+          style: { color: '#888', gridColumn: '1 / -1', padding: '24px 0' },
+          textContent: 'No plays match your filters.',
+        }))
+      } else {
+        for (const play of plays) {
+          grid.appendChild(buildPlayCard(play, rosterMap, codeNames[play.id]))
+        }
+      }
+
+      // Render canvases
+      requestAnimationFrame(() => {
+        for (const play of plays) {
+          const canvas = grid.querySelector(`[data-play-id="${play.id}"] canvas`)
+          if (canvas && canvas.offsetWidth > 0) {
+            canvas.width = canvas.offsetWidth
+            canvas.height = canvas.offsetHeight
+            renderPlay(canvas, play, { rosterMap, showDefense: true, showReadNumbers: false, mini: true })
+          }
+        }
+      })
+    }
+
+    refreshGrid()
+    view.appendChild(grid)
+    outlet.appendChild(view)
+
+    // Resize handler
+    function onResize() {
+      requestAnimationFrame(() => {
+        const plays = getFilteredPlays()
+        for (const play of plays) {
+          const canvas = grid.querySelector(`[data-play-id="${play.id}"] canvas`)
+          if (canvas && canvas.offsetWidth > 0) {
+            canvas.width = canvas.offsetWidth
+            canvas.height = canvas.offsetHeight
+            renderPlay(canvas, play, { rosterMap, showDefense: true, showReadNumbers: false, mini: true })
+          }
+        }
+      })
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }
+
+  // ─── MANAGE MODE: Add/remove/reorder plays, set code names ────────────────
+  function renderManageMode(rosterMap) {
+    const playbooks = store.getPlaybooks()
+    const pb = playbooks.find(p => p.id === selectedPlaybookId)
+    if (!pb) { mode = 'list'; render(); return }
+
+    const activeId = store.get().activePlaybookId
+    const isActive = pb.id === activeId
+
+    const view = el('div', { className: 'playbook-view' })
+
+    // ── Header
+    const nameInput = el('input', {
+      className: 'input playbook-name-input',
+      type: 'text',
+      value: pb.name,
+    })
+    nameInput.addEventListener('blur', () => saveName(nameInput.value))
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') nameInput.blur() })
+
+    const activeEl = isActive
+      ? el('span', { className: 'playbook-active-badge', textContent: '★ Active' })
+      : el('button', {
+          className: 'btn btn-ghost btn-sm',
+          textContent: 'Set Active',
+          onclick: () => {
+            store.set({ activePlaybookId: pb.id })
+            showToast(`"${pb.name}" set as active`)
+            render()
+          },
+        })
+
+    view.appendChild(el('div', { className: 'playbook-editor-header' }, [
+      el('button', {
+        className: 'btn btn-ghost btn-sm',
+        textContent: '← Done',
+        onclick: () => { mode = 'view'; render() },
+      }),
+      nameInput,
+      activeEl,
+    ]))
+
+    // ── Current plays list with reorder + code names
+    const sortedPlays = [...pb.plays].sort((a, b) => a.order - b.order)
+    const playsList = el('div', { className: 'playbook-plays-list' })
+
+    if (sortedPlays.length === 0) {
+      playsList.appendChild(el('div', { className: 'playbook-empty-plays' }, [
+        el('p', { textContent: 'No plays added yet. Use the picker below to add plays.' }),
+      ]))
+    } else {
+      for (const entry of sortedPlays) {
+        const play = PLAY_LIBRARY.find(p => p.id === entry.playId)
+        if (!play) {
+          playsList.appendChild(el('div', { className: 'playbook-play-item' }, [
+            el('div', { className: 'playbook-play-info' }, [
+              el('div', { className: 'playbook-play-real-name', textContent: `⚠️ Not found: ${entry.playId}` }),
+            ]),
+            el('div', { className: 'playbook-play-actions' }, [
+              el('button', { className: 'btn btn-danger btn-sm', textContent: '✕', onclick: () => removePlay(entry.playId) }),
+            ]),
+          ]))
+          continue
+        }
+
+        const codeNameInput = el('input', {
+          className: 'input input-sm codename-input',
+          type: 'text',
+          value: entry.codeName,
+          placeholder: 'Code name...',
+        })
+        codeNameInput.addEventListener('blur', () => saveCodeName(entry.playId, codeNameInput.value))
+        codeNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') codeNameInput.blur() })
+
+        const canvas = el('canvas', {})
+        const thumb = el('div', { className: 'playbook-play-thumb' }, [canvas])
+
+        playsList.appendChild(el('div', {
+          className: 'playbook-play-item',
+          dataset: { playId: entry.playId, order: String(entry.order) },
+        }, [
+          thumb,
+          el('div', { className: 'playbook-play-info' }, [
+            codeNameInput,
+            el('div', { className: 'playbook-play-real-name', textContent: play.name }),
+          ]),
+          el('div', { className: 'playbook-play-actions' }, [
+            el('button', { className: 'btn btn-ghost btn-sm', textContent: '▲', onclick: () => movePlay(entry.playId, -1) }),
+            el('button', { className: 'btn btn-ghost btn-sm', textContent: '▼', onclick: () => movePlay(entry.playId, 1) }),
+            el('button', { className: 'btn btn-danger btn-sm', textContent: '✕', onclick: () => removePlay(entry.playId) }),
+          ]),
+        ]))
+      }
+    }
+    view.appendChild(playsList)
+
+    // ── Play picker (always visible in manage mode)
+    const picker = el('div', { className: 'playbook-play-picker' })
+    picker.appendChild(el('h3', { textContent: 'Add Plays', style: { margin: '16px 0 8px', color: '#e94560' } }))
+
+    const pickerSearch = el('input', {
+      type: 'text',
+      className: 'input filter-search',
+      placeholder: '🔍 Search plays…',
+      value: searchFilters.search,
+    })
+    pickerSearch.addEventListener('input', () => {
+      searchFilters.search = pickerSearch.value
+      rebuildPickerGrid()
+    })
+
+    const pickerFormation = buildSelect('Formation', getFormations(), v => {
+      searchFilters.formation = v; rebuildPickerGrid()
+    })
+    pickerFormation.value = searchFilters.formation
+
+    picker.appendChild(el('div', { className: 'filter-bar' }, [pickerSearch, pickerFormation]))
+
+    const pickerGrid = el('div', { className: 'play-picker-grid' })
+    picker.appendChild(pickerGrid)
+
+    function rebuildPickerGrid() {
+      clear(pickerGrid)
+      const currentPb = store.getPlaybooks().find(p => p.id === selectedPlaybookId)
+      const addedIds = new Set(currentPb ? currentPb.plays.map(e => e.playId) : [])
+      const plays = filterPlays(searchFilters)
+
+      for (const play of plays) {
+        const alreadyAdded = addedIds.has(play.id)
+        const canvas = el('canvas', {})
+        const addBtn = el('button', {
+          className: alreadyAdded ? 'btn btn-sm btn-added' : 'btn btn-primary btn-sm',
+          textContent: alreadyAdded ? '✓ Added' : '+ Add',
+          onclick: () => { if (!alreadyAdded) addPlayToPlaybook(play.id) },
+        })
+        if (alreadyAdded) addBtn.disabled = true
+
+        pickerGrid.appendChild(el('div', {
+          className: 'play-picker-card',
+          dataset: { playId: play.id },
+        }, [
+          canvas,
+          el('div', { className: 'play-picker-card-info' }, [
+            el('span', { textContent: play.name }),
+            addBtn,
+          ]),
+        ]))
+      }
+
+      requestAnimationFrame(() => {
+        for (const play of plays) {
+          const canvas = pickerGrid.querySelector(`.play-picker-card[data-play-id="${play.id}"] canvas`)
+          if (!canvas) continue
+          canvas.width = canvas.offsetWidth || 160
+          canvas.height = canvas.offsetHeight || 120
+          renderPlay(canvas, play, { rosterMap, showDefense: true, showReadNumbers: false, mini: true })
+        }
+      })
+    }
+
+    rebuildPickerGrid()
+    view.appendChild(picker)
+
+    // ── Delete playbook button
+    view.appendChild(el('div', { style: { marginTop: '24px', textAlign: 'center' } }, [
+      el('button', {
+        className: 'btn btn-danger btn-sm',
+        textContent: '🗑 Delete Playbook',
+        onclick: () => deletePlaybook(pb),
+      }),
+    ]))
+
+    outlet.appendChild(view)
+
+    // Render thumbnails
+    requestAnimationFrame(() => {
+      for (const entry of sortedPlays) {
+        const play = PLAY_LIBRARY.find(p => p.id === entry.playId)
+        if (!play) continue
+        const canvas = outlet.querySelector(`.playbook-play-item[data-play-id="${entry.playId}"] canvas`)
+        if (!canvas) continue
+        canvas.width = canvas.offsetWidth || 120
+        canvas.height = canvas.offsetHeight || 90
+        renderPlay(canvas, play, { rosterMap, showDefense: true, showReadNumbers: false, mini: true })
+      }
+    })
+  }
+
+  // ─── LIST MODE: Show all playbooks (for switching/creating) ───────────────
+  function renderPlaybookList(rosterMap) {
+    const playbooks = store.getPlaybooks()
+    const activeId = store.get().activePlaybookId
+
+    const view = el('div', { className: 'playbook-view' })
+    view.appendChild(el('div', { className: 'playbook-list-header' }, [
+      el('h1', { textContent: '📋 Playbooks' }),
+      el('button', { className: 'btn btn-primary btn-sm', textContent: '+ New Playbook', onclick: createPlaybook }),
+    ]))
+
+    const grid = el('div', { className: 'playbook-grid' })
+
+    if (playbooks.length === 0) {
+      grid.appendChild(el('div', { className: 'playbook-empty' }, [
+        el('p', { textContent: 'No playbooks yet. Create one to organize your plays for game day.' }),
+      ]))
+    } else {
+      for (const pb of playbooks) {
+        const isActive = pb.id === activeId
+        const countText = `${pb.plays.length} play${pb.plays.length !== 1 ? 's' : ''}`
+
+        grid.appendChild(el('div', {
+          className: `playbook-card ${isActive ? 'playbook-card-active' : ''}`,
+          onclick: () => { selectedPlaybookId = pb.id; mode = 'view'; render() },
+          style: { cursor: 'pointer' },
+        }, [
+          el('div', { className: 'playbook-card-header' }, [
+            el('h3', { textContent: pb.name }),
+            el('span', { className: 'playbook-card-count', textContent: countText }),
+          ]),
+          isActive ? el('span', { className: 'playbook-active-badge', textContent: '★ Active' }) : null,
+        ].filter(Boolean)))
+      }
+    }
+
+    view.appendChild(grid)
+    outlet.appendChild(view)
+  }
+
+  // ─── Actions ──────────────────────────────────────────────────────────────
+  function createPlaybook() {
+    const name = prompt('Playbook name:')
+    if (!name || !name.trim()) return
+    const playbooks = store.getPlaybooks()
+    const pb = { id: 'pb_' + Date.now(), name: name.trim(), plays: [], createdAt: Date.now() }
+    playbooks.push(pb)
+    store.set({ playbooks })
+    if (playbooks.length === 1) store.set({ activePlaybookId: pb.id })
+    selectedPlaybookId = pb.id
+    mode = 'manage'  // Go straight to manage so they can add plays
+    render()
+    showToast(`"${pb.name}" created — add some plays!`)
+  }
+
+  function deletePlaybook(pb) {
+    if (!confirm(`Delete "${pb.name}"?`)) return
+    const playbooks = store.getPlaybooks().filter(p => p.id !== pb.id)
+    store.set({ playbooks })
+    if (store.get().activePlaybookId === pb.id) store.set({ activePlaybookId: null })
+    if (selectedPlaybookId === pb.id) selectedPlaybookId = null
+    mode = playbooks.length > 0 ? 'view' : 'list'
+    render()
+    showToast(`"${pb.name}" deleted`)
+  }
+
+  function saveName(newName) {
+    if (!newName.trim()) return
+    const playbooks = store.getPlaybooks()
+    const idx = playbooks.findIndex(p => p.id === selectedPlaybookId)
+    if (idx === -1) return
+    playbooks[idx].name = newName.trim()
+    store.set({ playbooks })
+  }
+
+  function saveCodeName(playId, newCodeName) {
+    const playbooks = store.getPlaybooks()
+    const pb = playbooks.find(p => p.id === selectedPlaybookId)
+    if (!pb) return
+    const entry = pb.plays.find(e => e.playId === playId)
+    if (!entry) return
+    entry.codeName = newCodeName.trim()
+    store.set({ playbooks })
+  }
+
+  function movePlay(playId, direction) {
+    const playbooks = store.getPlaybooks()
+    const pb = playbooks.find(p => p.id === selectedPlaybookId)
+    if (!pb) return
+    pb.plays.sort((a, b) => a.order - b.order)
+    const idx = pb.plays.findIndex(e => e.playId === playId)
+    const swapIdx = idx + direction
+    if (swapIdx < 0 || swapIdx >= pb.plays.length) return
+    const tmpOrder = pb.plays[idx].order
+    pb.plays[idx].order = pb.plays[swapIdx].order
+    pb.plays[swapIdx].order = tmpOrder
+    store.set({ playbooks })
+    render()
+  }
+
+  function addPlayToPlaybook(playId) {
+    const playbooks = store.getPlaybooks()
+    const pb = playbooks.find(p => p.id === selectedPlaybookId)
+    if (!pb) return
+    if (pb.plays.some(e => e.playId === playId)) { showToast('Already in playbook'); return }
+    const maxOrder = pb.plays.length > 0 ? Math.max(...pb.plays.map(e => e.order)) + 1 : 0
+    pb.plays.push({ playId, codeName: '', order: maxOrder })
+    store.set({ playbooks })
+    render()
+    showToast('Play added')
+  }
+
+  function removePlay(playId) {
+    const playbooks = store.getPlaybooks()
+    const pb = playbooks.find(p => p.id === selectedPlaybookId)
+    if (!pb) return
+    pb.plays = pb.plays.filter(e => e.playId !== playId)
+    pb.plays.sort((a, b) => a.order - b.order)
+    pb.plays.forEach((e, i) => e.order = i)
+    store.set({ playbooks })
+    render()
+  }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
+  function buildSelect(label, options, onChange) {
+    const select = el('select', { className: 'input filter-select' })
+    select.appendChild(el('option', { value: '', textContent: `${label} ▾` }))
+    for (const opt of options) {
+      select.appendChild(el('option', { value: opt, textContent: opt.charAt(0).toUpperCase() + opt.slice(1) }))
+    }
+    select.addEventListener('change', () => onChange(select.value))
+    return select
+  }
+
+  function buildPlayCard(play, rosterMap, codeName) {
+    const canvas = el('canvas', {})
+    canvas.width = 200
+    canvas.height = 150
+
+    const tagBadges = play.tags.slice(0, 3).map(t =>
+      el('span', { className: 'tag-badge', textContent: t })
+    )
+
+    const typeIcon = play.isRunPlay ? '🏃' : '🎯'
+    const displayName = codeName ? `${codeName}` : play.name
+
+    const info = el('div', { className: 'play-card-info' }, [
+      el('div', { className: 'play-card-name', textContent: `${typeIcon} ${displayName}` }),
+      codeName
+        ? el('div', { className: 'play-card-meta', textContent: `${play.name} · ${play.formation}` })
+        : el('div', { className: 'play-card-meta', textContent: play.formation }),
+      el('div', { className: 'play-card-tags', style: { marginTop: '6px' } }, tagBadges),
+    ])
+
+    return el('div', {
+      className: 'play-card',
+      dataset: { playId: play.id },
+      onclick: () => { window.location.hash = `#/play/${play.id}` },
+    }, [canvas, info])
+  }
+
+  // ─── Subscribe & init ─────────────────────────────────────────────────────
+  const unsubscribe = store.subscribe(() => render())
+  render()
+  return () => unsubscribe()
+}
