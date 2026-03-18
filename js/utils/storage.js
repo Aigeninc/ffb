@@ -1,0 +1,1 @@
+export function load(e,t=null){try{const r=localStorage.getItem(e);return null===r?t:JSON.parse(r)}catch{return t}}export function save(e,t){try{localStorage.setItem(e,JSON.stringify(t))}catch(e){console.error("Storage save failed:",e)}}export function migrate(){load("pb_version",0)<1&&save("pb_version",1)}
